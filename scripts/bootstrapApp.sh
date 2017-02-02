@@ -949,8 +949,8 @@ main() {
     stop_state_less_services
     provision_api
     check_api_health
+    run_migrations
     if [ $is_upgrade = false ]; then
-      run_migrations
       restart_api
       check_api_health
     fi
@@ -973,8 +973,8 @@ main() {
     generate_api_config
     provision_api_local
     check_api_health
+    run_migrations_local
     if [ $is_upgrade = false ]; then
-      run_migrations_local
       restart_api_local
       check_api_health
     fi
