@@ -1934,10 +1934,12 @@ do $$
      end if;
 
    -- Adds accountRole for serviceUser
-     if not exists (select 1 from "accountRoles" where "accountId" = '540e55445e5bad6f98764522' and "roleCode" = 6100) then
-       insert into "accountRoles" ("accountId", "roleCode", "createdAt", "updatedAt")
-       values ('540e55445e5bad6f98764522', 6100, '2016-02-29T00:00:00Z', '2016-02-29T00:00:00Z');
+    if exists (select 1 from information_schema.columns where table_name = 'accountRoles') then
+      if not exists (select 1 from "accountRoles" where "accountId" = '540e55445e5bad6f98764522' and "roleCode" = 6100) then
+        insert into "accountRoles" ("accountId", "roleCode", "createdAt", "updatedAt")
+        values ('540e55445e5bad6f98764522', 6100, '2016-02-29T00:00:00Z', '2016-02-29T00:00:00Z');
       end if;
+    end if;
 
   -- Adds serviceUser token in accountTokens table for local
      if not exists (select 1 from "accountTokens" where "name" = 'serviceUser' and "isInternal" = true) then
@@ -5289,41 +5291,43 @@ do $$
     end if;
 
     -- Moves accounts.systemRoles data to accountRoles table
-    if exists (select 1 from information_schema.columns where table_name = 'accounts' and column_name = 'systemRoles') then
-    begin
-    declare
-      accounts_rec record;
+    if exists (select 1 from information_schema.columns where table_name = 'accountRoles') then
+      if exists (select 1 from information_schema.columns where table_name = 'accounts' and column_name = 'systemRoles') then
       begin
-        for accounts_rec in select id, "systemRoles" as roles from accounts where "systemRoles" not like '["user"]' and "systemRoles" not like '[ "user" ]'
-        loop
-          if accounts_rec.roles like '%opsUser%' then
-            if not exists (select 1 from "accountRoles" where "accountId" = accounts_rec.id and "roleCode" = 6070) then
-              insert into "accountRoles" ("accountId", "roleCode", "createdAt", "updatedAt")
-              values (accounts_rec.id, 6070, '2016-06-01', '2016-06-01');
+      declare
+        accounts_rec record;
+        begin
+          for accounts_rec in select id, "systemRoles" as roles from accounts where "systemRoles" not like '["user"]' and "systemRoles" not like '[ "user" ]'
+          loop
+            if accounts_rec.roles like '%opsUser%' then
+              if not exists (select 1 from "accountRoles" where "accountId" = accounts_rec.id and "roleCode" = 6070) then
+                insert into "accountRoles" ("accountId", "roleCode", "createdAt", "updatedAt")
+                values (accounts_rec.id, 6070, '2016-06-01', '2016-06-01');
+              end if;
             end if;
-          end if;
-          if accounts_rec.roles like '%superUser%' then
-            if not exists (select 1 from "accountRoles" where "accountId" = accounts_rec.id and "roleCode" = 6080) then
-              insert into "accountRoles" ("accountId", "roleCode", "createdAt", "updatedAt")
-              values (accounts_rec.id, 6080, '2016-06-01', '2016-06-01');
+            if accounts_rec.roles like '%superUser%' then
+              if not exists (select 1 from "accountRoles" where "accountId" = accounts_rec.id and "roleCode" = 6080) then
+                insert into "accountRoles" ("accountId", "roleCode", "createdAt", "updatedAt")
+                values (accounts_rec.id, 6080, '2016-06-01', '2016-06-01');
+              end if;
             end if;
-          end if;
-          if accounts_rec.roles like '%betaUser%' then
-            if not exists (select 1 from "accountRoles" where "accountId" = accounts_rec.id and "roleCode" = 6090) then
-              insert into "accountRoles" ("accountId", "roleCode", "createdAt", "updatedAt")
-              values (accounts_rec.id, 6090, '2016-06-01', '2016-06-01');
+            if accounts_rec.roles like '%betaUser%' then
+              if not exists (select 1 from "accountRoles" where "accountId" = accounts_rec.id and "roleCode" = 6090) then
+                insert into "accountRoles" ("accountId", "roleCode", "createdAt", "updatedAt")
+                values (accounts_rec.id, 6090, '2016-06-01', '2016-06-01');
+              end if;
             end if;
-          end if;
-          if accounts_rec.roles like '%serviceUser%' then
-            if not exists (select 1 from "accountRoles" where "accountId" = accounts_rec.id and "roleCode" = 6100) then
-              insert into "accountRoles" ("accountId", "roleCode", "createdAt", "updatedAt")
-              values (accounts_rec.id, 6100, '2016-06-01', '2016-06-01');
+            if accounts_rec.roles like '%serviceUser%' then
+              if not exists (select 1 from "accountRoles" where "accountId" = accounts_rec.id and "roleCode" = 6100) then
+                insert into "accountRoles" ("accountId", "roleCode", "createdAt", "updatedAt")
+                values (accounts_rec.id, 6100, '2016-06-01', '2016-06-01');
+              end if;
             end if;
-          end if;
-        end loop;
+          end loop;
+        end;
+        alter table "accounts" drop column "systemRoles";
       end;
-      alter table "accounts" drop column "systemRoles";
-    end;
+      end if;
     end if;
 
     -- Drop Vault related fields from accounts table
